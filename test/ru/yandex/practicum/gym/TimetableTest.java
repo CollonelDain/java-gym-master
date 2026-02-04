@@ -97,4 +97,113 @@ public class TimetableTest {
         );
     }
 
+    @Test
+    void testGetCountByCoachesForEmptyTimetable() {
+        Timetable timetable = new Timetable();
+
+        List<CounterOfTrainings> coaches = timetable.getCountByCoaches();
+
+        //Проверить, что список тренеров пуст
+        Assertions.assertTrue(coaches.isEmpty());
+    }
+
+    @Test
+    void testGetCountByCoachesForOneCoach() {
+        Timetable timetable = new Timetable();
+
+        Coach coach1 = new Coach("Васильев", "Василий", "Васильевич");
+        Group group1 = new Group("Акробатика для взрослых", Age.ADULT, 90);
+
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach1, DayOfWeek.MONDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach1, DayOfWeek.SUNDAY, new TimeOfDay(10, 0))
+        );
+        List<CounterOfTrainings> coaches = timetable.getCountByCoaches();
+
+        //Проверить, что в списке только один тренер
+        Assertions.assertEquals(1, coaches.size());
+        //Проверить, что у тренера две тренировки
+        Assertions.assertEquals(2, coaches.getFirst().getTrainings());
+    }
+
+    @Test
+    void testGetCountByCoachesForTreeCoachesOnSort() {
+        Timetable timetable = new Timetable();
+
+        Coach coach1 = new Coach("Васильев", "Василий", "Васильевич");
+        Coach coach2 = new Coach("Иванов", "Иван", "Иванович");
+        Coach coach3 = new Coach("Никитин", "Никита", "Никитич");
+
+        Group group1 = new Group("Акробатика для детей", Age.CHILD, 60);
+        Group group2 = new Group("Акробатика для взрослых", Age.ADULT, 90);
+
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach1, DayOfWeek.MONDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach1, DayOfWeek.FRIDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach1, DayOfWeek.MONDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach1, DayOfWeek.FRIDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach1, DayOfWeek.MONDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach1, DayOfWeek.FRIDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach2, DayOfWeek.WEDNESDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group2, coach3, DayOfWeek.MONDAY, new TimeOfDay(12, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group2, coach3, DayOfWeek.THURSDAY, new TimeOfDay(13, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group2, coach3, DayOfWeek.SATURDAY, new TimeOfDay(12, 0))
+        );
+
+        List<CounterOfTrainings> coaches = timetable.getCountByCoaches();
+
+        //Проверить, что список тренеров отсортирован по убыванию
+        for (int i=1; i<coaches.size(); i++) {
+            Assertions.assertTrue(coaches.get(i-1).getTrainings() >= coaches.get(i).getTrainings());
+        }
+    }
+
+    @Test
+    void testTwoEqualsCoaches() {
+        Timetable timetable = new Timetable();
+
+        Coach coach1 = new Coach("Васильев", "Василий", "Васильевич");
+        Coach coach2 = new Coach("Васильев", "Василий", "Васильевич");
+        Group group1 = new Group("Акробатика для взрослых", Age.ADULT, 90);
+
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach1, DayOfWeek.MONDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach2, DayOfWeek.MONDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach1, DayOfWeek.MONDAY, new TimeOfDay(10, 0))
+        );
+        timetable.addNewTrainingSession(new TrainingSession(
+                group1, coach2, DayOfWeek.MONDAY, new TimeOfDay(10, 0))
+        );
+
+        List<CounterOfTrainings> coaches = timetable.getCountByCoaches();
+
+        //Проверить, что в списке только один тренер
+        Assertions.assertEquals(1, coaches.size());
+        //Проверить, что у учителя четыре тренировки
+        Assertions.assertEquals(4, coaches.getFirst().getTrainings());
+    }
 }

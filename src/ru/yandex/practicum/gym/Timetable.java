@@ -5,21 +5,11 @@ import java.util.*;
 public class Timetable {
 
     private Map<DayOfWeek, SortedMap<TimeOfDay, List<TrainingSession>>> timetable = new HashMap<>();
-    private List<CounterOfTrainings> coaches = new ArrayList<>();
-    private boolean isSortedCoaches = true;
+    //TODO: вернуться к реализации из коммита 078b511, идея с флагами прикольная
+    private Map<Coach, Integer> coaches = new HashMap<>();
 
     public void addNewTrainingSession(TrainingSession trainingSession) {
-        isSortedCoaches = false;
-        boolean flag = false;
-        for (CounterOfTrainings coach : coaches) {
-            if (coach.getCoach().equals(trainingSession.getCoach())) {
-                coach.incrementTrainings();
-                flag = true;
-            }
-        }
-        if (!flag) {
-            coaches.add(new CounterOfTrainings(trainingSession.getCoach()));
-        }
+        coaches.put(trainingSession.getCoach(), coaches.getOrDefault(trainingSession.getCoach(), 0) + 1);
 
         SortedMap<TimeOfDay, List<TrainingSession>> dayMap = timetable.computeIfAbsent(
                 trainingSession.getDayOfWeek(),
@@ -43,11 +33,18 @@ public class Timetable {
     }
 
     public List<CounterOfTrainings> getCountByCoaches() {
-        if (!isSortedCoaches) {
-            coaches.sort(Comparator.comparingInt(CounterOfTrainings::getTrainings).reversed());
-            isSortedCoaches = true;
+        List<CounterOfTrainings> topCoaches = new ArrayList<>();
+        for (Map.Entry<Coach, Integer> entry : coaches.entrySet()) {
+            topCoaches.add(new CounterOfTrainings(entry.getKey(), entry.getValue()));
         }
 
-        return coaches;
+        topCoaches.sort(new Comparator<CounterOfTrainings>() {
+            @Override
+            public int compare(CounterOfTrainings o1, CounterOfTrainings o2) {
+                return o1.getTrainings() - o2.getTrainings();
+            }
+        }.reversed());
+
+        return topCoaches;
     }
 }

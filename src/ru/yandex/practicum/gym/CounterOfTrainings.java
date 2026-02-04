@@ -6,9 +6,9 @@ public class CounterOfTrainings {
     private Coach coach;
     private int trainings;
 
-    public CounterOfTrainings(Coach coach) {
+    public CounterOfTrainings(Coach coach, int trainings) {
         this.coach = coach;
-        this.trainings = 1;
+        this.trainings = trainings;
     }
 
     public Coach getCoach() {
@@ -17,10 +17,6 @@ public class CounterOfTrainings {
 
     public int getTrainings() {
         return trainings;
-    }
-
-    public void incrementTrainings() {
-        this.trainings++;
     }
 
     @Override
@@ -34,5 +30,10 @@ public class CounterOfTrainings {
     @Override
     public int hashCode() {
         return Objects.hash(coach);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("<%s, %d>", this.coach, this.trainings);
     }
 }
