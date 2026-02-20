@@ -4,13 +4,9 @@ import java.util.*;
 
 public class Timetable {
 
-    private Map<DayOfWeek, SortedMap<TimeOfDay, List<TrainingSession>>> timetable = new HashMap<>();
-    //TODO: вернуться к реализации из коммита 078b511, идея с флагами прикольная
-    private Map<Coach, Integer> coaches = new HashMap<>();
+    private Map<DayOfWeek, TreeMap<TimeOfDay, List<TrainingSession>>> timetable = new HashMap<>();
 
     public void addNewTrainingSession(TrainingSession trainingSession) {
-        coaches.put(trainingSession.getCoach(), coaches.getOrDefault(trainingSession.getCoach(), 0) + 1);
-
         SortedMap<TimeOfDay, List<TrainingSession>> dayMap = timetable.computeIfAbsent(
                 trainingSession.getDayOfWeek(),
                 k -> new TreeMap<>()
@@ -22,10 +18,9 @@ public class Timetable {
         ).add(trainingSession);
     }
 
-
-    //TODO: возможно, не было смысла возвращать emptyCollection и стоит вернуться к returnForDefault new Collection<>()
-    public SortedMap<TimeOfDay, List<TrainingSession>> getTrainingSessionsForDay(DayOfWeek dayOfWeek) {
-        return timetable.getOrDefault(dayOfWeek, Collections.emptySortedMap());
+    public Map<TimeOfDay, List<TrainingSession>> getTrainingSessionsForDay(DayOfWeek dayOfWeek) {
+        TreeMap<TimeOfDay, List<TrainingSession>> result = timetable.get(dayOfWeek);
+        return (result != null) ? result : Collections.emptyMap();
     }
 
     public List<TrainingSession> getTrainingSessionsForDayAndTime(DayOfWeek dayOfWeek, TimeOfDay timeOfDay) {
@@ -33,18 +28,27 @@ public class Timetable {
     }
 
     public List<CounterOfTrainings> getCountByCoaches() {
-        List<CounterOfTrainings> topCoaches = new ArrayList<>();
-        for (Map.Entry<Coach, Integer> entry : coaches.entrySet()) {
-            topCoaches.add(new CounterOfTrainings(entry.getKey(), entry.getValue()));
-        }
+        Map<Coach, Integer> coachCounter = getCoachIntegerMap();
 
-        topCoaches.sort(new Comparator<CounterOfTrainings>() {
-            @Override
-            public int compare(CounterOfTrainings o1, CounterOfTrainings o2) {
-                return o1.getTrainings() - o2.getTrainings();
-            }
-        }.reversed());
+        List<CounterOfTrainings> topCoaches = new ArrayList<>();
+        for (Map.Entry<Coach, Integer> coach : coachCounter.entrySet()) {
+            topCoaches.add(new CounterOfTrainings(coach.getKey(), coach.getValue()));
+        }
+        topCoaches.sort(Comparator.comparingInt(CounterOfTrainings::getTrainings).reversed());
 
         return topCoaches;
+    }
+
+    private Map<Coach, Integer> getCoachIntegerMap() {
+        Map<Coach, Integer> coachCounter = new HashMap<>();
+        for (Map.Entry<DayOfWeek, TreeMap<TimeOfDay, List<TrainingSession>>> day : timetable.entrySet()) {
+            for (Map.Entry<TimeOfDay, List<TrainingSession>> timeOfDay : day.getValue().entrySet()) {
+                for (TrainingSession workout : timeOfDay.getValue()) {
+                    Coach coach = workout.getCoach();
+                    coachCounter.put(coach, coachCounter.getOrDefault(coach, 0) + 1);
+                }
+            }
+        }
+        return coachCounter;
     }
 }
